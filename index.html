@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Daftar GRC Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: enterprise app shell. Fixed left sidebar (220px) + content; sidebar becomes a top tab bar under 820px. Drawer slides in from the right. */
+:root{
+  --bg:#f6f7f8; --surface:#ffffff; --ink:#15191e; --muted:#5f6b76; --faint:#8a95a0; --line:#e3e7eb; --line2:#d3d9df;
+  --brand:#0b6b5c; --brand-ink:#ffffff; --brand-soft:#e3f1ee; --hover:#f1f3f5;
+  --crit:#b42330; --high:#b45309; --med:#8a6a00; --low:#2f7a43;
+  --crit-bg:#fbe7e9; --high-bg:#fdeedc; --med-bg:#f8f1d4; --low-bg:#e4f2e8;
+  --shadow:0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08);
+  --sans:"IBM Plex Sans","Segoe UI",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1316; --surface:#161b1f; --ink:#e6eaee; --muted:#9aa6b1; --faint:#6f7b86; --line:#252c32; --line2:#323a41;
+  --brand:#4fbfa8; --brand-ink:#08201b; --brand-soft:#15302b; --hover:#1c2227;
+  --crit:#ff8f99; --high:#f5ad68; --med:#e0c65a; --low:#86d29a;
+  --crit-bg:#3c1b20; --high-bg:#3a2816; --med-bg:#35311a; --low-bg:#1a3222; --shadow:none; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1316; --surface:#161b1f; --ink:#e6eaee; --muted:#9aa6b1; --faint:#6f7b86; --line:#252c32; --line2:#323a41;
+  --brand:#4fbfa8; --brand-ink:#08201b; --brand-soft:#15302b; --hover:#1c2227;
+  --crit:#ff8f99; --high:#f5ad68; --med:#e0c65a; --low:#86d29a;
+  --crit-bg:#3c1b20; --high-bg:#3a2816; --med-bg:#35311a; --low-bg:#1a3222; --shadow:none; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 var(--sans)}
+button,select,input,textarea{font:inherit;color:inherit}
+a{color:var(--brand)}
+:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
+.app{display:grid;grid-template-columns:220px minmax(0,1fr);min-height:100%}
+aside{align-self:start;background:var(--surface);border-right:1px solid var(--line);padding:18px 12px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh;padding-left:max(12px,env(safe-area-inset-left,0px))}
+.logo{display:flex;align-items:center;gap:10px;padding:2px 8px 18px}
+.logo svg{flex:none}
+.logo b{font-size:15px;letter-spacing:-.01em}
+.logo span{display:block;font-size:11px;color:var(--muted);font-weight:400}
+.nav{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;color:var(--muted);text-decoration:none;font-weight:500;border:0;background:none;width:100%;text-align:left;cursor:pointer}
+.nav:hover{background:var(--hover);color:var(--ink)}
+.nav[aria-current="page"]{background:var(--brand-soft);color:var(--brand)}
+.nav .ct{margin-left:auto;font:500 11px var(--mono);color:var(--faint)}
+.side-foot{margin-top:auto;font-size:12px;color:var(--muted);padding:12px 8px 0;border-top:1px solid var(--line)}
+.side-foot b{color:var(--ink);font-weight:600;display:block}
+main{min-width:0;padding:0 max(28px,env(safe-area-inset-right,0px)) 48px 28px}
+.topbar{display:flex;align-items:center;gap:16px;padding:18px 0 16px;border-bottom:1px solid var(--line);margin-bottom:22px;flex-wrap:wrap}
+.crumb{font-size:12px;color:var(--muted)}
+.topbar h1{font-size:20px;font-weight:600;margin:2px 0 0;letter-spacing:-.01em}
+.topbar .right{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.org{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);border:1px solid var(--line2);background:var(--surface);border-radius:6px;padding:5px 10px}
+.org i{width:8px;height:8px;border-radius:50%;background:var(--med);display:inline-block}
+.btn{border:1px solid var(--line2);background:var(--surface);border-radius:6px;padding:6px 12px;cursor:pointer;font-weight:500;font-size:13px}
+.btn:hover{background:var(--hover)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.btn.primary:hover{filter:brightness(1.05)}
+.notice{display:flex;gap:10px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--med);border-radius:6px;padding:10px 14px;font-size:13px;color:var(--muted);margin-bottom:20px}
+.notice b{color:var(--ink)}
+.grid{display:grid;gap:16px}
+.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);min-width:0}
+.panel-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.panel-h h2{font-size:14px;font-weight:600;margin:0}
+.panel-h .sub{font-size:12px;color:var(--muted)}
+.panel-b{padding:16px}
+.kpi{padding:16px}
+.kpi .k{font-size:12px;color:var(--muted);font-weight:500}
+.kpi .v{font-size:28px;font-weight:600;letter-spacing:-.02em;margin-top:4px;font-variant-numeric:tabular-nums}
+.kpi .d{font-size:12px;color:var(--muted);margin-top:2px}
+.kpi .bar{height:4px;background:var(--line);border-radius:2px;margin-top:10px;overflow:hidden}
+.kpi .bar i{display:block;height:100%;background:var(--brand)}
+.two{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
+.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.heat{display:grid;grid-template-columns:24px repeat(5,minmax(0,1fr));gap:4px;font-family:var(--mono)}
+.heat .ax{font-size:11px;color:var(--faint);display:flex;align-items:center;justify-content:center}
+.cell{aspect-ratio:1.5;border-radius:4px;border:0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;cursor:default;opacity:.6}
+.cell.on{opacity:1;cursor:pointer}
+.cell.on:hover{outline:2px solid currentColor}
+.c-critical{background:var(--crit-bg);color:var(--crit)}.c-high{background:var(--high-bg);color:var(--high)}
+.c-medium{background:var(--med-bg);color:var(--med)}.c-low{background:var(--low-bg);color:var(--low)}
+.axis-x{display:flex;justify-content:center;font-size:11px;color:var(--faint);margin:8px 0 0 28px}
+.axis-y{font-size:11px;color:var(--faint);margin-bottom:6px}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin-top:12px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.dom{display:grid;grid-template-columns:150px minmax(0,1fr) 44px;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+.dom:last-child{border-bottom:0}
+.dom small{display:block;color:var(--muted);font-size:11px}
+.sbar{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--line);gap:1px}
+.sbar i{display:block}.sbar .ok{background:var(--low)}.sbar .part{background:var(--med)}.sbar .no{background:var(--crit)}
+.pct{text-align:right;font:500 12px var(--mono)}
+.list{list-style:none;margin:0;padding:0}
+.list li{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+.list li:last-child{border-bottom:0}
+.list .id{font:500 11px var(--mono);color:var(--faint);width:30px}
+.list .t{flex:1;min-width:0}
+.list .st,.list .badge{flex:none}
+.list button.t{border:0;background:none;padding:0;text-align:left;cursor:pointer}
+.list button.t:hover{text-decoration:underline}
+.badge{display:inline-flex;align-items:center;font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:999px;white-space:nowrap}
+.b-critical{background:var(--crit-bg);color:var(--crit)}.b-high{background:var(--high-bg);color:var(--high)}.b-medium{background:var(--med-bg);color:var(--med)}.b-low{background:var(--low-bg);color:var(--low)}
+.st{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;white-space:nowrap}
+.st::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+.st.ok,.st.done{color:var(--low)}.st.part,.st.prog{color:var(--med)}.st.no{color:var(--crit)}.st.ns{color:var(--faint)}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.toolbar input,.toolbar select{border:1px solid var(--line2);background:var(--surface);border-radius:6px;padding:6px 10px;font-size:13px}
+.toolbar input{min-width:220px;flex:1;max-width:320px}
+.toolbar .count{margin-left:auto;font-size:12px;color:var(--muted)}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{text-align:left;font-size:11.5px;font-weight:600;color:var(--muted);padding:9px 12px;border-bottom:1px solid var(--line);background:var(--surface);white-space:nowrap;position:sticky;top:0}
+td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr{cursor:pointer}
+tbody tr:hover td{background:var(--hover)}
+tbody tr:last-child td{border-bottom:0}
+td.m{font:500 12px var(--mono);color:var(--muted);white-space:nowrap}
+td.n{font-variant-numeric:tabular-nums;text-align:center;white-space:nowrap}
+.t-risks{min-width:860px}.t-comp{min-width:820px}.t-acts{min-width:820px}
+td select{border:1px solid transparent;background:transparent;border-radius:5px;padding:3px 4px;font-size:12.5px;cursor:pointer}
+td select:hover,td select:focus{border-color:var(--line2);background:var(--surface)}
+.board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.col h3{font-size:13px;font-weight:600;margin:0 0 2px}
+.col .win{font:500 11px var(--mono);color:var(--muted)}
+.prog{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:10px 0 12px}
+.prog i{display:block;height:100%;background:var(--brand)}
+.task{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin-bottom:8px;box-shadow:var(--shadow)}
+.task .top{display:flex;align-items:center;gap:8px;font:500 11px var(--mono);color:var(--faint)}
+.task p{margin:4px 0 8px;font-size:13px}
+.task .meta{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted)}
+.task select{border:1px solid var(--line2);border-radius:5px;background:var(--surface);font-size:12px;padding:2px 4px}
+.scrim{position:fixed;inset:0;background:rgba(10,14,18,.35);z-index:20}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(520px,100%);background:var(--surface);border-left:1px solid var(--line);z-index:21;display:flex;flex-direction:column;box-shadow:-8px 0 24px rgba(0,0,0,.12);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px)}
+.dh{display:flex;align-items:flex-start;gap:12px;padding:18px 20px;border-bottom:1px solid var(--line)}
+.dh h2{font-size:17px;font-weight:600;margin:4px 0 0}
+.dh .x{margin-left:auto;border:0;background:none;font-size:22px;line-height:1;cursor:pointer;color:var(--muted);padding:2px 6px}
+.db{padding:18px 20px;overflow-y:auto;flex:1}
+.f{margin-bottom:16px}
+.f label,.f .l{display:block;font-size:11.5px;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.03em}
+.f p{margin:0}
+.f select,.f input,.f textarea{width:100%;border:1px solid var(--line2);border-radius:6px;padding:7px 10px;background:var(--surface)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.scorebox{display:flex;align-items:center;gap:12px;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin-bottom:16px;font-size:13px}
+.scorebox b{font-size:20px;font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:500 11.5px var(--mono);border:1px solid var(--line2);border-radius:4px;padding:2px 7px;color:var(--muted)}
+.prose{max-width:720px}
+.prose h2{font-size:16px;font-weight:600;margin:24px 0 6px}
+.prose p,.prose li{color:var(--ink)}
+.prose ol,.prose ul{padding-left:20px}
+.empty{color:var(--muted);padding:24px;text-align:center}
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:8px 14px;border-radius:6px;font-size:13px;z-index:30}
+@media (max-width:1100px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.three{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:820px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  aside{position:sticky;top:0;height:auto;flex-direction:row;align-items:center;gap:2px;padding:8px max(12px,env(safe-area-inset-right,0px)) 8px max(12px,env(safe-area-inset-left,0px));overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);z-index:5;padding-top:calc(8px + env(safe-area-inset-top,0px))}
+  .logo{padding:0 8px 0 0}.logo span,.side-foot,.nav .ct{display:none}
+  .nav{width:auto;white-space:nowrap}
+  main{padding:0 max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))}
+  .two,.board{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:520px){.kpis{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.dom{grid-template-columns:minmax(0,1fr) 40px}.dom .sbar{grid-column:1/-1;grid-row:2}.row2{grid-template-columns:1fr}.toolbar input{min-width:0;max-width:none}}
+@media (prefers-reduced-motion:no-preference){.drawer{animation:slide .18s ease-out}@keyframes slide{from{transform:translateX(24px);opacity:.6}to{transform:none;opacity:1}}}
+</style>
+</head>
+<body>
+
+
+<div class="app">
+<aside aria-label="Main navigation">
+  <div class="logo"><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect width="26" height="26" rx="6" fill="var(--brand)"/><path d="M7 7h8a4 4 0 0 1 4 4v8H11a4 4 0 0 1-4-4z" fill="none" stroke="var(--brand-ink)" stroke-width="2"/><path d="M11 12h4M11 15h3" stroke="var(--brand-ink)" stroke-width="2" stroke-linecap="round"/></svg>
+  <div><b>Daftar</b><span>Risk &amp; compliance tracker</span></div></div>
+  <a class="nav" href="#dashboard" data-v="dashboard">Dashboard</a>
+  <a class="nav" href="#risks" data-v="risks">Risk register <span class="ct" id="ct-r"></span></a>
+  <a class="nav" href="#compliance" data-v="compliance">Compliance <span class="ct" id="ct-c"></span></a>
+  <a class="nav" href="#actions" data-v="actions">Action plan <span class="ct" id="ct-a"></span></a>
+  <a class="nav" href="#about" data-v="about">About the project</a>
+  <div class="side-foot"><b>Ghadi Ahmad Alharthy</b>Portfolio project · Oct 2026<br><a href="https://www.linkedin.com/in/ghadi-alharthy-61b311402">LinkedIn</a></div>
+</aside>
+<main>
+  <div class="topbar">
+    <div><div class="crumb" id="crumb">Workspace / Wadi Sanad Clinics</div><h1 id="title">Dashboard</h1></div>
+    <div class="right"><span class="org"><i></i>Demo data · fictional organisation</span><button class="btn" id="reset" type="button">Reset demo data</button><button class="btn primary" id="addRisk" type="button">New risk</button></div>
+  </div>
+  <div id="view"></div>
+</main>
+</div>
+<div id="layer"></div>
+
+<script>
+const SEED = {"risks": [{"id": "R01", "title": "Shared EMR logins at reception", "cat": "Access control", "desc": "Because reception desks share one generic EMR login per branch, a user could view or change patient records without traceability, making misuse impossible to attribute and breaching access accountability requirements.", "controls": "Windows screen lock after 15 minutes", "L": 4, "I": 4, "treat": "Mitigate", "owner": "IT Manager", "ecc": "2-2 Identity and Access Management", "iso": "A.5.16 Identity management; A.5.17 Authentication information; A.8.5 Secure authentication", "csf": "PR.AA", "tL": 2, "tI": 4, "actions": ["A01", "A15"], "pdpl": "Access control over patient records"}, {"id": "R02", "title": "Leaver accounts stay active", "cat": "Access control", "desc": "Because HR does not notify IT when staff leave, accounts of former employees remain active, allowing unauthorised access to patient data and email after employment ends.", "controls": "Ad-hoc manual disabling when IT is informed", "L": 4, "I": 4, "treat": "Mitigate", "owner": "HR Manager", "ecc": "1-9 Cybersecurity in Human Resources; 2-2 Identity and Access Management", "iso": "A.5.18 Access rights; A.6.5 Responsibilities after termination or change of employment", "csf": "PR.AA", "tL": 1, "tI": 4, "actions": ["A02", "A15"], "pdpl": "Access control over patient records"}, {"id": "R03", "title": "Staff susceptible to phishing", "cat": "People", "desc": "Because no security awareness training has been delivered in the last 12 months, staff are likely to click phishing links, leading to credential theft, malware infection or ransomware.", "controls": "Email filtering in Microsoft 365", "L": 5, "I": 4, "treat": "Mitigate", "owner": "Operations Director", "ecc": "1-10 Cybersecurity Awareness and Training Program; 2-4 Email Protection", "iso": "A.6.3 Information security awareness, education and training; A.8.7 Protection against malware", "csf": "PR.AT", "tL": 2, "tI": 4, "actions": ["A05"], "pdpl": ""}, {"id": "R04", "title": "Unpatched workstations and servers", "cat": "Technology", "desc": "Because patching is manual and irregular, known critical vulnerabilities remain open on clinic PCs and servers, which could be exploited for ransomware and cause a multi-day outage of clinical services.", "controls": "Antivirus installed on all endpoints", "L": 4, "I": 5, "treat": "Mitigate", "owner": "IT Manager", "ecc": "2-10 Vulnerability Management; 2-3 Information Systems and Information Processing Facilities Protection", "iso": "A.8.8 Management of technical vulnerabilities; A.8.19 Installation of software on operational systems", "csf": "ID.RA; PR.PS", "tL": 2, "tI": 4, "actions": ["A03"], "pdpl": ""}, {"id": "R05", "title": "Lab backups never restore-tested", "cat": "Resilience", "desc": "Because lab system backups are kept on-site and have never been restore-tested, a ransomware attack or hardware failure could cause permanent loss of lab results and prolonged service disruption.", "controls": "Nightly backup job to a local NAS", "L": 3, "I": 5, "treat": "Mitigate", "owner": "IT Manager", "ecc": "2-9 Backup and Recovery Management; 3-1 Cybersecurity Resilience Aspects of Business Continuity Management", "iso": "A.8.13 Information backup; A.5.30 ICT readiness for business continuity", "csf": "PR.DS; RC.RP", "tL": 1, "tI": 5, "actions": ["A08"], "pdpl": ""}, {"id": "R06", "title": "Admin accounts without MFA", "cat": "Access control", "desc": "Because IT staff use domain administrator accounts for daily work without multi-factor authentication, a single stolen password could give an attacker full control of the network.", "controls": "Strong password policy", "L": 3, "I": 5, "treat": "Mitigate", "owner": "IT Manager", "ecc": "2-2 Identity and Access Management (privileged access management)", "iso": "A.8.2 Privileged access rights; A.8.5 Secure authentication", "csf": "PR.AA", "tL": 1, "tI": 5, "actions": ["A04", "A15"], "pdpl": ""}, {"id": "R07", "title": "No security terms in EMR contract", "cat": "Third party", "desc": "Because the EMR vendor contract has no security requirements, breach notification duty or right-to-audit clause, the clinic may not learn of a vendor-side breach in time to meet its PDPL obligations.", "controls": "Vendor holds an information security certification (not verified)", "L": 3, "I": 5, "treat": "Mitigate", "owner": "Procurement Lead", "ecc": "4-1 Third-Party Cybersecurity; 4-2 Cloud Computing and Hosting Cybersecurity", "iso": "A.5.19 Information security in supplier relationships; A.5.20 Addressing security within supplier agreements; A.5.23 Information security for use of cloud services", "csf": "GV.SC", "tL": 2, "tI": 4, "actions": ["A11"], "pdpl": "Processor obligations; breach notification"}, {"id": "R08", "title": "Patient data copied to USB / personal email", "cat": "Data protection", "desc": "Because there is no data classification or handling rule and USB storage is unrestricted, staff copy patient reports to USB drives and personal email, risking loss or disclosure of sensitive health data.", "controls": "Verbal instruction from management", "L": 3, "I": 5, "treat": "Mitigate", "owner": "Compliance Officer", "ecc": "2-7 Data and Information Protection; 2-6 Mobile Devices Security", "iso": "A.5.12 Classification of information; A.5.14 Information transfer; A.7.10 Storage media; A.8.12 Data leakage prevention", "csf": "PR.DS", "tL": 1, "tI": 5, "actions": ["A09"], "pdpl": "Protection of sensitive (health) data"}, {"id": "R09", "title": "EMR access logs not reviewed", "cat": "Detection", "desc": "Because EMR audit logs and server logs are not collected or reviewed, inappropriate access to patient records or an ongoing attack would go undetected.", "controls": "EMR keeps an audit trail (not reviewed)", "L": 3, "I": 3, "treat": "Mitigate", "owner": "IT Manager", "ecc": "2-12 Cybersecurity Event Logs and Monitoring Management", "iso": "A.8.15 Logging; A.8.16 Monitoring activities", "csf": "DE.CM", "tL": 2, "tI": 3, "actions": ["A12"], "pdpl": ""}, {"id": "R10", "title": "No incident or breach-notification plan", "cat": "Response", "desc": "Because there is no documented incident response plan or PDPL breach notification procedure, the clinic could respond slowly and inconsistently to a breach and miss the 72-hour regulatory notification window.", "controls": "IT team handles issues informally", "L": 3, "I": 4, "treat": "Mitigate", "owner": "Compliance Officer", "ecc": "2-13 Cybersecurity Incident and Threat Management", "iso": "A.5.24 Incident management planning and preparation; A.5.26 Response to information security incidents", "csf": "RS.MA; RS.CO", "tL": 2, "tI": 3, "actions": ["A10"], "pdpl": "Breach notification to SDAIA within 72 hours"}, {"id": "R11", "title": "No approved policies or risk method", "cat": "Governance", "desc": "Because security policies drafted in 2022 were never approved and no risk management method exists, security decisions are inconsistent and accountability is unclear.", "controls": "Draft policies (2022, unapproved)", "L": 3, "I": 4, "treat": "Mitigate", "owner": "Operations Director", "ecc": "1-3 Cybersecurity Policies and Procedures; 1-5 Cybersecurity Risk Management", "iso": "A.5.1 Policies for information security; Clause 6.1 Actions to address risks and opportunities", "csf": "GV.PO; GV.RM", "tL": 2, "tI": 3, "actions": ["A06", "A07"], "pdpl": ""}, {"id": "R12", "title": "Shared key to server room", "cat": "Physical", "desc": "Because the server room uses a shared key with no access log, unauthorised people could physically access or damage core systems without detection.", "controls": "Locked door; key held at reception", "L": 2, "I": 4, "treat": "Mitigate", "owner": "Facilities Supervisor", "ecc": "2-14 Physical Security", "iso": "A.7.2 Physical entry; A.7.4 Physical security monitoring", "csf": "PR.AA", "tL": 1, "tI": 4, "actions": ["A13"], "pdpl": ""}, {"id": "R13", "title": "Outdated IT asset inventory", "cat": "Asset management", "desc": "Because the asset list is a spreadsheet last updated in 2024, unknown or unmanaged devices are likely to miss patches and protection, widening the attack surface.", "controls": "Spreadsheet asset list", "L": 3, "I": 3, "treat": "Mitigate", "owner": "IT Manager", "ecc": "2-1 Asset Management", "iso": "A.5.9 Inventory of information and other associated assets", "csf": "ID.AM", "tL": 2, "tI": 2, "actions": ["A14"], "pdpl": ""}], "compliance": [{"id": "C01", "fw": "ECC", "ref": "1-1", "req": "A cybersecurity strategy is documented and approved by leadership", "status": "Non-Compliant", "evidence": "No strategy document exists", "gap": "Develop a short strategy aligned to business goals", "risk": "R11"}, {"id": "C02", "fw": "ECC", "ref": "1-2", "req": "A cybersecurity function with clear accountability exists", "status": "Partially Compliant", "evidence": "IT Manager covers security part-time", "gap": "Assign a named cybersecurity lead and reporting line", "risk": "R11"}, {"id": "C03", "fw": "ECC", "ref": "1-3", "req": "Policies and procedures are documented, approved and communicated", "status": "Partially Compliant", "evidence": "Draft policies from 2022, never approved", "gap": "Approve and publish the core policy set", "risk": "R11"}, {"id": "C04", "fw": "ECC", "ref": "1-4", "req": "Cybersecurity roles and responsibilities are defined", "status": "Partially Compliant", "evidence": "Roles described informally in IT job descriptions", "gap": "Document a RACI for security activities", "risk": "R11"}, {"id": "C05", "fw": "ECC", "ref": "1-5", "req": "A risk management methodology and risk register are in place", "status": "Non-Compliant", "evidence": "No methodology or register before this review", "gap": "Adopt this assessment's method and register", "risk": "R11"}, {"id": "C06", "fw": "ECC", "ref": "1-9", "req": "Security is covered in onboarding and offboarding", "status": "Non-Compliant", "evidence": "Sample: 14 of 31 leavers still active after 30 days (illustrative)", "gap": "Link HR leaver process to same-day account removal", "risk": "R02"}, {"id": "C07", "fw": "ECC", "ref": "1-10", "req": "Staff receive regular cybersecurity awareness training", "status": "Non-Compliant", "evidence": "No training in the last 12 months", "gap": "Run annual training and quarterly phishing simulations", "risk": "R03"}, {"id": "C08", "fw": "ECC", "ref": "2-1", "req": "A complete and current inventory of IT assets is maintained", "status": "Partially Compliant", "evidence": "Spreadsheet last updated 2024", "gap": "Rebuild inventory and reconcile quarterly", "risk": "R13"}, {"id": "C09", "fw": "ECC", "ref": "2-2", "req": "Unique user IDs, MFA for privileged and remote access, and periodic access reviews", "status": "Non-Compliant", "evidence": "Shared reception logins; admins without MFA", "gap": "Named accounts, MFA, quarterly access review", "risk": "R01, R06"}, {"id": "C10", "fw": "ECC", "ref": "2-3", "req": "Endpoints are protected against malware", "status": "Compliant", "evidence": "Antivirus active on all sampled devices", "gap": "None; maintain", "risk": "R04"}, {"id": "C11", "fw": "ECC", "ref": "2-4", "req": "Email is protected by filtering for spam and malicious content", "status": "Compliant", "evidence": "Microsoft 365 filtering enabled", "gap": "None; maintain", "risk": "R03"}, {"id": "C12", "fw": "ECC", "ref": "2-5", "req": "Networks are segmented; guest Wi-Fi is isolated", "status": "Compliant", "evidence": "Guest Wi-Fi on separate network", "gap": "None; maintain", "risk": "-"}, {"id": "C13", "fw": "ECC", "ref": "2-7", "req": "Data is classified and handled according to its sensitivity", "status": "Non-Compliant", "evidence": "No classification scheme; USB unrestricted", "gap": "Define classification; restrict USB storage", "risk": "R08"}, {"id": "C14", "fw": "ECC", "ref": "2-8", "req": "Encryption protects sensitive data on portable devices", "status": "Partially Compliant", "evidence": "Most laptops encrypted; gaps on older models", "gap": "Enforce disk encryption on all laptops", "risk": "R08"}, {"id": "C15", "fw": "ECC", "ref": "2-9", "req": "Backups are taken, stored securely and restore-tested", "status": "Partially Compliant", "evidence": "Nightly backups; no off-site copy; never tested", "gap": "Add off-site copy; test restores quarterly", "risk": "R05"}, {"id": "C16", "fw": "ECC", "ref": "2-10", "req": "Vulnerabilities are identified and patched on time", "status": "Partially Compliant", "evidence": "Manual patching; many critical patches outstanding", "gap": "Automate patching; set patch timelines", "risk": "R04"}, {"id": "C17", "fw": "ECC", "ref": "2-12", "req": "Security logs are collected and monitored", "status": "Non-Compliant", "evidence": "Logs not centralised or reviewed", "gap": "Centralise logs; monthly EMR access review", "risk": "R09"}, {"id": "C18", "fw": "ECC", "ref": "2-13", "req": "Incidents are managed through a documented, tested process", "status": "Non-Compliant", "evidence": "No incident response plan", "gap": "Write and test an incident response plan", "risk": "R10"}, {"id": "C19", "fw": "ECC", "ref": "2-14", "req": "Physical access to IT facilities is restricted and logged", "status": "Partially Compliant", "evidence": "Locked server room; shared key; no log", "gap": "Introduce badge access or an access log", "risk": "R12"}, {"id": "C20", "fw": "ECC", "ref": "4-1 / 4-2", "req": "Third-party and cloud contracts include cybersecurity requirements", "status": "Non-Compliant", "evidence": "EMR contract has no security clauses", "gap": "Add security, breach notice and audit clauses", "risk": "R07"}, {"id": "C21", "fw": "PDPL", "ref": "Privacy notice", "req": "Patients are informed how their personal data is collected and used", "status": "Compliant", "evidence": "Privacy notice shown in booking app", "gap": "None; review annually", "risk": "-"}, {"id": "C22", "fw": "PDPL", "ref": "Records of processing", "req": "Personal data processing activities are recorded", "status": "Partially Compliant", "evidence": "Partial list of systems holding patient data", "gap": "Complete a record of processing activities", "risk": "R08"}, {"id": "C23", "fw": "PDPL", "ref": "Breach notification", "req": "Qualifying breaches are reported to SDAIA within 72 hours of awareness", "status": "Non-Compliant", "evidence": "No breach notification procedure", "gap": "Include PDPL notification steps in the IR plan", "risk": "R10"}], "actions": [{"id": "A01", "action": "Replace shared reception logins with named EMR accounts and fast user switching", "risks": "R01", "priority": "P1", "phase": "Phase 1", "window": "0 to 30 days", "owner": "IT Manager", "effort": "Low", "kpi": "0 shared accounts in EMR", "status": "Done"}, {"id": "A02", "action": "Disable all leaver accounts now; add a same-day HR-to-IT offboarding step", "risks": "R02", "priority": "P1", "phase": "Phase 1", "window": "0 to 30 days", "owner": "HR Manager + IT Manager", "effort": "Low", "kpi": "100% of leavers disabled within 24 hours", "status": "In progress"}, {"id": "A03", "action": "Apply outstanding critical patches; switch on automated patch deployment", "risks": "R04", "priority": "P1", "phase": "Phase 1", "window": "0 to 30 days", "owner": "IT Manager", "effort": "Medium", "kpi": "At least 95% of devices patched within 14 days of a critical release", "status": "In progress"}, {"id": "A04", "action": "Create separate admin accounts and enforce MFA for privileged and remote access", "risks": "R06", "priority": "P1", "phase": "Phase 1", "window": "0 to 30 days", "owner": "IT Manager", "effort": "Low", "kpi": "100% of privileged accounts use MFA", "status": "Not started"}, {"id": "A05", "action": "Deliver awareness training and a phishing simulation; add a report-phishing button", "risks": "R03", "priority": "P1", "phase": "Phase 1", "window": "0 to 30 days", "owner": "Operations Director", "effort": "Medium", "kpi": "Phishing click rate below 10% after 90 days", "status": "Not started"}, {"id": "A06", "action": "Update and formally approve the core policy set and communicate it to staff", "risks": "R11", "priority": "P2", "phase": "Phase 2", "window": "31 to 90 days", "owner": "Operations Director", "effort": "Medium", "kpi": "Policies approved and acknowledged by 90% of staff", "status": "Not started"}, {"id": "A07", "action": "Adopt the risk method and register; hold a quarterly risk review", "risks": "R11", "priority": "P2", "phase": "Phase 2", "window": "31 to 90 days", "owner": "Compliance Officer", "effort": "Low", "kpi": "Register reviewed every quarter", "status": "Not started"}, {"id": "A08", "action": "Add an off-site or immutable backup copy and run a full restore test", "risks": "R05", "priority": "P2", "phase": "Phase 2", "window": "31 to 90 days", "owner": "IT Manager", "effort": "Medium", "kpi": "Quarterly restore test passed within target time", "status": "Not started"}, {"id": "A09", "action": "Introduce data classification; block USB storage on clinical PCs; add email data-loss rules", "risks": "R08", "priority": "P2", "phase": "Phase 2", "window": "31 to 90 days", "owner": "Compliance Officer", "effort": "Medium", "kpi": "USB storage blocked on 100% of clinical PCs", "status": "Not started"}, {"id": "A10", "action": "Write an incident response plan with PDPL breach notification steps; run a tabletop exercise", "risks": "R10", "priority": "P2", "phase": "Phase 2", "window": "31 to 90 days", "owner": "Compliance Officer", "effort": "Medium", "kpi": "Plan approved; one tabletop exercise completed", "status": "Not started"}, {"id": "A11", "action": "Amend the EMR contract: security requirements, breach notice timeline, data location, right to audit", "risks": "R07", "priority": "P2", "phase": "Phase 2", "window": "31 to 90 days", "owner": "Procurement Lead", "effort": "Medium", "kpi": "Contract addendum signed", "status": "Not started"}, {"id": "A12", "action": "Centralise logs and review EMR access logs every month", "risks": "R09", "priority": "P3", "phase": "Phase 3", "window": "91 to 180 days", "owner": "IT Manager", "effort": "High", "kpi": "12 monthly reviews per year documented", "status": "Not started"}, {"id": "A13", "action": "Install badge access or keep an access log for the server room", "risks": "R12", "priority": "P3", "phase": "Phase 3", "window": "91 to 180 days", "owner": "Facilities Supervisor", "effort": "Low", "kpi": "100% of server room entries logged", "status": "Not started"}, {"id": "A14", "action": "Rebuild the asset inventory and reconcile it every quarter", "risks": "R13", "priority": "P3", "phase": "Phase 3", "window": "91 to 180 days", "owner": "IT Manager", "effort": "Medium", "kpi": "At least 98% of discovered devices in inventory", "status": "Not started"}, {"id": "A15", "action": "Run quarterly user and privileged access reviews with system owners", "risks": "R01, R02, R06", "priority": "P3", "phase": "Phase 3", "window": "91 to 180 days", "owner": "IT Manager", "effort": "Low", "kpi": "4 access reviews completed per year", "status": "Not started"}]};
+const KEY = "daftar-grc-v1";
+let S;
+function load(){ try{ const s = localStorage.getItem(KEY); if(s){ S = JSON.parse(s); return; } }catch(e){} S = JSON.parse(JSON.stringify(SEED)); }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+load();
+const $ = (q,el=document)=>el.querySelector(q);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const rating = s => s>=20?"Critical":s>=10?"High":s>=5?"Medium":"Low";
+const badge = r => `<span class="badge b-${r.toLowerCase()}">${r}</span>`;
+const SC = {"Compliant":"ok","Partially Compliant":"part","Non-Compliant":"no"};
+const AC = {"Done":"done","In progress":"prog","Not started":"ns"};
+const score = r => r.L*r.I, tscore = r => r.tL*r.tI;
+function compScore(list){ if(!list.length) return 0; const p = list.reduce((a,c)=>a+(c.status==="Compliant"?1:c.status==="Partially Compliant"?.5:0),0); return Math.round(100*p/list.length); }
+function toast(m){ const t=document.createElement("div"); t.className="toast"; t.textContent=m; document.body.appendChild(t); setTimeout(()=>t.remove(),1800); }
+function opts(arr, v){ return arr.map(x=>`<option${x==v?" selected":""}>${x}</option>`).join(""); }
+const LBL = {L:["","Rare","Unlikely","Possible","Likely","Almost certain"], I:["","Negligible","Minor","Moderate","Major","Severe"]};
+
+function counts(){
+  $("#ct-r").textContent = S.risks.length;
+  $("#ct-c").textContent = compScore(S.compliance)+"%";
+  $("#ct-a").textContent = S.actions.filter(a=>a.status==="Done").length+"/"+S.actions.length;
+}
+
+function heat(){
+  const g = {}; S.risks.forEach(r=>{ (g[r.L+"-"+r.I] ||= []).push(r.id); });
+  let h = `<div class="axis-y">Impact</div><div class="heat">`;
+  for(let i=5;i>=1;i--){ h += `<span class="ax">${i}</span>`;
+    for(let l=1;l<=5;l++){ const ids=g[l+"-"+i]||[]; const c=rating(l*i).toLowerCase();
+      h += ids.length ? `<button class="cell on c-${c}" type="button" data-cell="${l}-${i}" title="${ids.join(", ")}" aria-label="Likelihood ${l}, impact ${i}: ${ids.length} risks">${ids.length}</button>` : `<span class="cell c-${c}" aria-hidden="true"></span>`; } }
+  h += `</div><div class="axis-x">Likelihood →</div>`;
+  return h;
+}
+function domains(){
+  const groups = [["Governance","ECC domain 1",c=>c.fw==="ECC"&&c.ref.startsWith("1-")],["Defense","ECC domain 2",c=>c.fw==="ECC"&&c.ref.startsWith("2-")],
+    ["Third party & cloud","ECC domain 4",c=>c.fw==="ECC"&&c.ref.startsWith("4-")],["Personal data","PDPL",c=>c.fw==="PDPL"]];
+  return groups.map(([n,s,f])=>{ const L=S.compliance.filter(f); const k=x=>L.filter(c=>c.status===x).length;
+    return `<div class="dom"><div>${n}<small>${s} · ${L.length} checks</small></div><div class="sbar">${[["ok","Compliant"],["part","Partially Compliant"],["no","Non-Compliant"]].map(([c,x])=>k(x)?`<i class="${c}" style="flex:${k(x)}"></i>`:"").join("")}</div><div class="pct">${compScore(L)}%</div></div>`; }).join("");
+}
+
+function vDashboard(){
+  const R=S.risks, n=R.length, crit=R.filter(r=>rating(score(r))==="Critical").length, high=R.filter(r=>rating(score(r))==="High").length;
+  const avgIn = n? (R.reduce((a,r)=>a+score(r),0)/n):0, avgT = n?(R.reduce((a,r)=>a+tscore(r),0)/n):0;
+  const done=S.actions.filter(a=>a.status==="Done").length, cs=compScore(S.compliance);
+  const top=[...R].sort((a,b)=>score(b)-score(a)||a.id.localeCompare(b.id)).slice(0,5);
+  const next=S.actions.filter(a=>a.status!=="Done").slice(0,5);
+  return `
+  <div class="notice"><span>ⓘ</span><div><b>Portfolio demo.</b> Wadi Sanad Clinics is a fictional Riyadh clinic group. The risks, evidence and actions are sample data I wrote to show how the tracker works. Changes you make are saved only in your browser.</div></div>
+  <div class="grid kpis">
+    <div class="panel kpi"><div class="k">Open risks</div><div class="v">${n}</div><div class="d">${crit} critical · ${high} high</div></div>
+    <div class="panel kpi"><div class="k">Average risk score</div><div class="v">${avgIn.toFixed(1)}</div><div class="d">Target after actions: ${avgT.toFixed(1)}</div></div>
+    <div class="panel kpi"><div class="k">ECC &amp; PDPL compliance</div><div class="v">${cs}%</div><div class="bar"><i style="width:${cs}%"></i></div></div>
+    <div class="panel kpi"><div class="k">Actions completed</div><div class="v">${done}<span style="font-size:16px;color:var(--muted)"> / ${S.actions.length}</span></div><div class="bar"><i style="width:${S.actions.length?100*done/S.actions.length:0}%"></i></div></div>
+  </div>
+  <div class="grid two" style="margin-top:16px">
+    <div class="panel"><div class="panel-h"><h2>Risk heat map</h2><span class="sub">Inherent risk · click a cell</span></div><div class="panel-b">${heat()}
+      <div class="legend"><span><i class="c-critical"></i>Critical 20–25</span><span><i class="c-high"></i>High 10–16</span><span><i class="c-medium"></i>Medium 5–9</span><span><i class="c-low"></i>Low 1–4</span></div></div></div>
+    <div class="panel"><div class="panel-h"><h2>Compliance by area</h2><a href="#compliance" class="sub">View checklist</a></div><div class="panel-b">${domains()}</div></div>
+  </div>
+  <div class="grid two" style="margin-top:16px">
+    <div class="panel"><div class="panel-h"><h2>Highest risks</h2><a href="#risks" class="sub">View register</a></div><div class="panel-b" style="padding-block:4px">
+      <ul class="list">${top.map(r=>`<li><span class="id">${r.id}</span><button class="t" type="button" data-risk="${r.id}">${esc(r.title)}</button>${badge(rating(score(r)))}<span class="m" style="font:500 12px var(--mono);color:var(--muted);width:24px;text-align:right">${score(r)}</span></li>`).join("")}</ul></div></div>
+    <div class="panel"><div class="panel-h"><h2>Next actions</h2><a href="#actions" class="sub">View plan</a></div><div class="panel-b" style="padding-block:4px">
+      <ul class="list">${next.map(a=>`<li><span class="id">${a.id}</span><span class="t">${esc(a.action)}</span><span class="st ${AC[a.status]}">${a.status}</span></li>`).join("") || '<li class="empty">All actions are done.</li>'}</ul></div></div>
+  </div>`;
+}
+
+let F = {q:"", rating:"All", cat:"All"};
+function vRisks(){
+  const cats=["All",...new Set(S.risks.map(r=>r.cat))];
+  const rows=S.risks.filter(r=>(F.rating==="All"||rating(score(r))===F.rating)&&(F.cat==="All"||r.cat===F.cat)&&(!F.q||(r.id+" "+r.title+" "+r.owner+" "+r.ecc).toLowerCase().includes(F.q.toLowerCase())));
+  return `<div class="toolbar"><input id="q" type="search" placeholder="Search risks, owners, ECC refs" value="${esc(F.q)}" aria-label="Search risks">
+    <select id="fr" aria-label="Filter by rating">${opts(["All","Critical","High","Medium","Low"],F.rating)}</select>
+    <select id="fc" aria-label="Filter by category">${opts(cats,F.cat)}</select><span class="count">${rows.length} of ${S.risks.length} risks</span></div>
+  <div class="panel"><div class="tw"><table class="t-risks"><thead><tr><th>ID</th><th>Risk</th><th>Category</th><th>Owner</th><th>L × I</th><th>Rating</th><th>Target</th><th>ECC</th></tr></thead><tbody>
+  ${rows.map(r=>`<tr data-risk="${r.id}" tabindex="0"><td class="m">${r.id}</td><td><b style="font-weight:500">${esc(r.title)}</b></td><td>${esc(r.cat)}</td><td>${esc(r.owner)}</td><td class="n">${r.L} × ${r.I} = <b>${score(r)}</b></td><td>${badge(rating(score(r)))}</td><td>${badge(rating(tscore(r)))}</td><td class="m">${esc(r.ecc.split(" ")[0])}</td></tr>`).join("") || `<tr><td colspan="8" class="empty">No risks match these filters.</td></tr>`}
+  </tbody></table></div></div>`;
+}
+
+let CF = {fw:"All", st:"All"};
+function vCompliance(){
+  const rows=S.compliance.filter(c=>(CF.fw==="All"||c.fw===CF.fw)&&(CF.st==="All"||c.status===CF.st));
+  return `<div class="grid three" style="margin-bottom:16px">
+    <div class="panel kpi"><div class="k">Overall score</div><div class="v">${compScore(S.compliance)}%</div><div class="d">Compliant = 1 · Partial = 0.5 · Non-compliant = 0</div></div>
+    <div class="panel kpi"><div class="k">NCA ECC-2:2024</div><div class="v">${compScore(S.compliance.filter(c=>c.fw==="ECC"))}%</div><div class="d">${S.compliance.filter(c=>c.fw==="ECC").length} subdomain checks</div></div>
+    <div class="panel kpi"><div class="k">PDPL</div><div class="v">${compScore(S.compliance.filter(c=>c.fw==="PDPL"))}%</div><div class="d">${S.compliance.filter(c=>c.fw==="PDPL").length} obligations checked</div></div></div>
+  <div class="toolbar"><select id="cfw" aria-label="Framework">${opts(["All","ECC","PDPL"],CF.fw)}</select><select id="cst" aria-label="Status">${opts(["All","Compliant","Partially Compliant","Non-Compliant"],CF.st)}</select><span class="count">Change a status to update the score</span></div>
+  <div class="panel"><div class="tw"><table class="t-comp"><thead><tr><th>ID</th><th>Ref</th><th>Requirement</th><th>Status</th><th>Gap / next step</th><th>Risk</th></tr></thead><tbody>
+  ${rows.map(c=>`<tr data-comp="${c.id}"><td class="m">${c.id}</td><td class="m">${c.fw} ${esc(c.ref)}</td><td>${esc(c.req)}</td><td><select data-cs="${c.id}" aria-label="Status for ${c.id}">${opts(["Compliant","Partially Compliant","Non-Compliant"],c.status)}</select></td><td style="color:var(--muted)">${esc(c.gap)}</td><td class="m">${esc(c.risk)}</td></tr>`).join("")}
+  </tbody></table></div></div>`;
+}
+
+function vActions(){
+  const phases=[["Phase 1","Close the critical risks and access gaps"],["Phase 2","Governance, backups and PDPL readiness"],["Phase 3","Monitoring and recurring reviews"]];
+  return `<div class="board">${phases.map(([p,aim])=>{ const L=S.actions.filter(a=>a.phase===p); const d=L.filter(a=>a.status==="Done").length;
+    return `<div class="col"><h3>${p} · ${esc(aim)}</h3><div class="win">${L[0]?esc(L[0].window):""} · ${d}/${L.length} done</div><div class="prog"><i style="width:${L.length?100*d/L.length:0}%"></i></div>
+    ${L.map(a=>`<div class="task"><div class="top">${a.id} · ${esc(a.priority)} · ${esc(a.risks)}</div><p>${esc(a.action)}</p><div class="meta"><span>${esc(a.owner)}</span><select data-as="${a.id}" aria-label="Status for ${a.id}">${opts(["Not started","In progress","Done"],a.status)}</select></div><div style="font-size:12px;color:var(--muted);margin-top:6px">Measure: ${esc(a.kpi)}</div></div>`).join("")}</div>`; }).join("")}</div>`;
+}
+
+function vAbout(){
+  return `<div class="panel"><div class="panel-b prose">
+  <p><b>Daftar</b> (Arabic for "register") is a small risk and compliance tracker I built as a GRC portfolio project. It is written in plain HTML, CSS and JavaScript and runs entirely in the browser.</p>
+  <p>It comes loaded with demo data for <b>Wadi Sanad Clinics</b>, a fictional private clinic group in Riyadh with about 220 staff, a cloud medical-record system and patients' health data. The organisation, evidence and ratings are invented for practice. This is not client work.</p>
+  <h2>What it does</h2>
+  <ul><li><b>Risk register</b>: record risks with owner, existing controls and treatment; likelihood × impact scoring (1–5) sets the rating automatically.</li>
+  <li><b>Heat map</b>: shows where risks sit and updates when ratings change.</li>
+  <li><b>Compliance checklist</b>: tracks 20 NCA ECC-2:2024 subdomain checks and 3 PDPL obligations, with a live score.</li>
+  <li><b>Action plan</b>: 15 actions in three phases with owners, status and a success measure.</li></ul>
+  <h2>How ratings work</h2>
+  <p>Score = likelihood × impact. Bands: Low 1–4, Medium 5–9, High 10–16, Critical 20–25. The approach is a simple version of the qualitative method in NIST SP 800-30. The ECC is mandatory for government and critical-infrastructure entities, so for a private clinic it is used as a voluntary benchmark. The PDPL applies because the clinic processes patients' personal data.</p>
+  <h2>Limitations</h2>
+  <p>All data is simulated, checks are at ECC subdomain level rather than control by control, and edits are stored only in your own browser.</p>
+  <h2>Sources</h2>
+  <ol><li><a href="https://cdn.nca.gov.sa/api/files/public/upload/86e09090-44e4-481f-bc28-355673607654_ECC--2024-EN.pdf">NCA, Essential Cybersecurity Controls ECC-2:2024</a></li>
+  <li><a href="https://sdaia.gov.sa/en/SDAIA/about/Documents/Personal%20Data%20English%20V2-23April2023-%20Reviewed-.pdf">SDAIA, Personal Data Protection Law</a></li>
+  <li><a href="https://sdaia.gov.sa/en/SDAIA/about/Documents/ImplementingRegulation.pdf">SDAIA, PDPL Implementing Regulation</a></li>
+  <li><a href="https://sdaia.gov.sa/en/SDAIA/about/Documents/PersonalDataBreachIncidents.pdf">SDAIA, Personal Data Breach Incidents Procedural Guide</a></li>
+  <li><a href="https://doi.org/10.6028/NIST.SP.800-30r1">NIST SP 800-30 Rev. 1, Guide for Conducting Risk Assessments</a></li>
+  <li><a href="https://www.iso.org/standard/27001">ISO/IEC 27001:2022</a> and <a href="https://doi.org/10.6028/NIST.CSWP.29">NIST CSF 2.0</a> (reference mappings)</li></ol>
+  <p style="color:var(--muted);font-size:13px;margin-top:24px">Ghadi Ahmad Alharthy · Information Technology graduate · ghaadii99aa@gmail.com · <a href="https://www.linkedin.com/in/ghadi-alharthy-61b311402">LinkedIn</a></p>
+  </div></div>`;
+}
+
+function riskDrawer(id){
+  const isNew = !id; const r = isNew ? {id:"R"+String(S.risks.length+1).padStart(2,"0"), title:"", cat:"Access control", desc:"", controls:"", L:3, I:3, treat:"Mitigate", owner:"", ecc:"", pdpl:"", iso:"", csf:"", tL:2, tI:3, actions:[]} : S.risks.find(x=>x.id===id);
+  const linked = S.actions.filter(a=>r.actions.includes(a.id));
+  $("#layer").innerHTML = `<div class="scrim" data-close></div><div class="drawer" role="dialog" aria-modal="true" aria-labelledby="dt">
+  <div class="dh"><div><div class="crumb">${r.id} · ${esc(r.cat)}</div><h2 id="dt">${isNew?"New risk":esc(r.title)}</h2></div><button class="x" type="button" data-close aria-label="Close">×</button></div>
+  <div class="db">
+    ${isNew?`<div class="f"><label for="nt">Risk title</label><input id="nt" required></div><div class="f"><label for="nd">Cause, event and consequence</label><textarea id="nd" rows="3"></textarea></div><div class="row2"><div class="f"><label for="no">Owner</label><input id="no"></div><div class="f"><label for="ncat">Category</label><select id="ncat">${opts(["Access control","People","Technology","Resilience","Third party","Data protection","Detection","Response","Governance","Physical","Asset management"],"Access control")}</select></div></div><div class="f"><label for="ne">ECC subdomain</label><input id="ne" placeholder="e.g. 2-2 Identity and Access Management"></div>`
+    :`<div class="f"><span class="l">Description</span><p>${esc(r.desc)}</p></div>`}
+    <div class="scorebox"><div><b id="ds">${score(r)}</b></div><div id="dr">${badge(rating(score(r)))}</div><div style="color:var(--muted)">Inherent score = likelihood × impact</div></div>
+    <div class="row2"><div class="f"><label for="dl">Likelihood</label><select id="dl">${[1,2,3,4,5].map(v=>`<option value="${v}"${v==r.L?" selected":""}>${v} · ${LBL.L[v]}</option>`).join("")}</select></div>
+    <div class="f"><label for="di">Impact</label><select id="di">${[1,2,3,4,5].map(v=>`<option value="${v}"${v==r.I?" selected":""}>${v} · ${LBL.I[v]}</option>`).join("")}</select></div></div>
+    ${isNew?"":`
+    <div class="row2"><div class="f"><span class="l">Owner</span><p>${esc(r.owner)}</p></div><div class="f"><span class="l">Treatment</span><p>${esc(r.treat)}</p></div></div>
+    <div class="f"><span class="l">Existing controls</span><p>${esc(r.controls)}</p></div>
+    <div class="f"><span class="l">NCA ECC-2:2024</span><p>${esc(r.ecc)}</p></div>
+    ${r.pdpl?`<div class="f"><span class="l">PDPL</span><p>${esc(r.pdpl)}</p></div>`:""}
+    <div class="f"><span class="l">Target after actions</span><p>${r.tL} × ${r.tI} = ${tscore(r)} ${badge(rating(tscore(r)))}</p></div>
+    <div class="f"><span class="l">Linked actions</span>${linked.map(a=>`<p style="margin-bottom:6px"><span class="chip">${a.id}</span> ${esc(a.action)} <span class="st ${AC[a.status]}">${a.status}</span></p>`).join("")}</div>
+    <div class="f"><span class="l">Also maps to (reference)</span><div class="chips">${r.iso.split(";").map(x=>`<span class="chip">ISO ${esc(x.trim().split(" ")[0])}</span>`).join("")}${r.csf.split(";").map(x=>`<span class="chip">CSF ${esc(x.trim())}</span>`).join("")}</div></div>`}
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px"><button class="btn" type="button" data-close>Cancel</button><button class="btn primary" type="button" id="dsave">${isNew?"Add risk":"Save changes"}</button></div>
+  </div></div>`;
+  const upd=()=>{ const s=+$("#dl").value*+$("#di").value; $("#ds").textContent=s; $("#dr").innerHTML=badge(rating(s)); };
+  $("#dl").onchange=upd; $("#di").onchange=upd;
+  $("#dsave").onclick=()=>{
+    if(isNew){ const t=$("#nt").value.trim(); if(!t){ $("#nt").focus(); toast("Add a risk title first"); return; }
+      Object.assign(r,{title:t,desc:$("#nd").value.trim(),owner:$("#no").value.trim()||"Unassigned",cat:$("#ncat").value,ecc:$("#ne").value.trim(),L:+$("#dl").value,I:+$("#di").value,tL:Math.max(1,+$("#dl").value-1),tI:+$("#di").value}); S.risks.push(r); toast(r.id+" added"); }
+    else { r.L=+$("#dl").value; r.I=+$("#di").value; toast(r.id+" updated"); }
+    save(); closeDrawer(); render();
+  };
+  document.addEventListener("keydown", escClose);
+  setTimeout(()=>{ const f=$(".drawer select, .drawer input"); f&&f.focus(); },30);
+}
+function escClose(e){ if(e.key==="Escape") closeDrawer(); }
+function closeDrawer(){ $("#layer").innerHTML=""; document.removeEventListener("keydown", escClose); }
+
+const VIEWS = {dashboard:["Dashboard",vDashboard],risks:["Risk register",vRisks],compliance:["Compliance",vCompliance],actions:["Action plan",vActions],about:["About the project",vAbout]};
+let cur = "dashboard";
+function render(){
+  const [t,fn]=VIEWS[cur]; $("#title").textContent=t; $("#crumb").textContent="Workspace / Wadi Sanad Clinics"+(cur==="dashboard"?"":" / "+t);
+  $("#view").innerHTML=fn(); counts();
+  document.querySelectorAll(".nav").forEach(a=>a.toggleAttribute("aria-current",a.dataset.v===cur)); document.querySelectorAll(".nav").forEach(a=>{ if(a.dataset.v===cur) a.setAttribute("aria-current","page"); });
+  const q=$("#q"); if(q){ q.oninput=e=>{F.q=e.target.value; const pos=e.target.selectionStart; render(); const n=$("#q"); n.focus(); n.setSelectionRange(pos,pos);}; $("#fr").onchange=e=>{F.rating=e.target.value;render()}; $("#fc").onchange=e=>{F.cat=e.target.value;render()}; }
+  if($("#cfw")){ $("#cfw").onchange=e=>{CF.fw=e.target.value;render()}; $("#cst").onchange=e=>{CF.st=e.target.value;render()}; }
+}
+function route(){ const h=(location.hash||"").slice(1); cur = VIEWS[h]?h:"dashboard"; render(); window.scrollTo(0,0); }
+document.addEventListener("click",e=>{
+  const c=e.target.closest("[data-close]"); if(c){ closeDrawer(); return; }
+  const rk=e.target.closest("[data-risk]"); if(rk && !e.target.closest("select")){ riskDrawer(rk.dataset.risk); return; }
+  const cell=e.target.closest("[data-cell]"); if(cell){ const [l,i]=cell.dataset.cell.split("-").map(Number); const ids=S.risks.filter(r=>r.L===l&&r.I===i); if(ids.length===1) riskDrawer(ids[0].id); else { F={q:"",rating:rating(l*i),cat:"All"}; location.hash="risks"; } }
+});
+document.addEventListener("keydown",e=>{ const tr=e.target.closest&&e.target.closest("tr[data-risk]"); if(tr&&e.key==="Enter") riskDrawer(tr.dataset.risk); });
+document.addEventListener("change",e=>{
+  if(e.target.dataset.cs){ S.compliance.find(c=>c.id===e.target.dataset.cs).status=e.target.value; save(); render(); toast("Compliance score updated"); }
+  if(e.target.dataset.as){ S.actions.find(a=>a.id===e.target.dataset.as).status=e.target.value; save(); render(); toast("Action status updated"); }
+});
+$("#addRisk").onclick=()=>riskDrawer(null);
+$("#reset").onclick=()=>{ S=JSON.parse(JSON.stringify(SEED)); try{localStorage.removeItem(KEY)}catch(e){} F={q:"",rating:"All",cat:"All"}; CF={fw:"All",st:"All"}; render(); toast("Demo data restored"); };
+window.addEventListener("hashchange",route);
+route();
+</script>
+
+</body>
+</html>
